@@ -1,8 +1,9 @@
 import lxml.html
 import premailer
 
+import django.contrib.auth
+
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser
 from django.core.mail import EmailMultiAlternatives
 from django.template import loader, Context
 
@@ -47,7 +48,7 @@ class TemplateEmail(EmailMultiAlternatives):
                     context.update(processor(None))
                 except:
                     pass
-                
+
         context.update(self.context)
         context.update(self._override_context)
 
@@ -93,6 +94,11 @@ class TemplateEmail(EmailMultiAlternatives):
 
         for i, recip in enumerate(self.to):
             # Convert user objects if they're in the recipients list
+            try:
+                AbstractBaseUser = django.contrib.auth.base_user.AbstractBaseUser
+            except ImportError:
+                AbstractBaseUser = django.contrib.auth.models.AbstractBaseUser
+
             if isinstance(recip, AbstractBaseUser):
                 self.to[i] = '"%s" <%s>' % (recip.get_full_name(), recip.email)
 
