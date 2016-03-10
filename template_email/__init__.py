@@ -19,6 +19,7 @@ class TemplateEmail(EmailMultiAlternatives):
     Makes it a little easier to send HTML+plaintxt emails using templates
     """
     template = None
+    template_override = None # allow template to be overwritten
     context = {}
     html = None
 
@@ -27,14 +28,19 @@ class TemplateEmail(EmailMultiAlternatives):
     def __init__(self, *args, **kwargs):
         context = kwargs.pop('context', self.context)
         template = kwargs.pop('template', self.template)
+        template_override = kwargs.pop('template_override', self.template_override)
         super(TemplateEmail, self).__init__(*args, **kwargs)
         self.template = template
+        self.template_override = template_override
 
         self._default_context = {}
         self._override_context = context or {}
 
     def render(self):
-        tpl = loader.get_template(self.template)
+        if self.template_override:
+            tpl = self.template_override
+        else:
+            tpl = loader.get_template(self.template)
 
         context = self._default_context
         if getattr(settings, "TEMPLATE_EMAIL_USE_CONTEXT_PROCESSORS", False):
